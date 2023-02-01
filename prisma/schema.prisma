@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  username    String   @unique
+  profile_pic String
+  phone       String
+  password    String
+  token       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // User roles
+  role Role @default(user)
+
+  tickets Ticket[]
+  Chat    Chat[]
+
+  @@map("users")
+}
+
+enum Role {
+  user
+  admin
+  superadmin // This is for the devs and owners of the app
+}
+
+model Ticket {
+  id     String   @id @default(cuid())
+  name   String
+  movie  String
+  time   DateTime
+  price  Int
+  User   User?    @relation(fields: [userId], references: [id])
+  userId String?
+
+  status String @default("pending")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tickets")
+}
+
+model Movie {
+  id       String    @id @default(cuid())
+  name     String
+  length   DateTime  @db.Time
+  genre    String
+  ratings  Rating[]
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("movies")
+}
+
+model Rating {
+  id      String  @id @default(cuid())
+  Movie   Movie?  @relation(fields: [movieId], references: [id])
+  movieId String?
+
+  @@map("ratings")
+}
+
+model Comment {
+  id      String  @id @default(cuid())
+  Movie   Movie?  @relation(fields: [movieId], references: [id])
+  movieId String?
+
+  @@map("comments")
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  username  User?    @relation(fields: [userId], references: [username])
+  userId    String?
+  text      String
+  createdAt DateTime
+
+  @@map("chats")
+}
